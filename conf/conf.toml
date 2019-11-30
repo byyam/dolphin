@@ -1,0 +1,4 @@
+[service]
+ListenAddr    = "127.0.0.1:12000"
+TCPServerAddr = "127.0.0.1:7800"
+TCPServerAddrDebug = "127.0.0.1:7801"
