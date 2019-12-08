@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"flag"
 	"github.com/byyam/dolphin/common"
@@ -33,13 +34,21 @@ func main() {
 func runService() {
 	router := gin.Default()
 	router.POST("/greeting", GreetingGRPC)
-	router.Run(common.Conf.Service.ListenAddr) // Do not use the default port: 8080
+	_ = router.Run(common.Conf.Service.ListenAddr) // Do not use the default port: 8080
+}
+
+func readRaw(req *http.Request) (body []byte, err error) {
+	body, err = ioutil.ReadAll(req.Body)
+	if err != nil {
+		return
+	}
+	req.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+	return
 }
 
 func GreetingGRPC(c *gin.Context) {
 	// read body
-	body := c.Request.Body
-	x, err := ioutil.ReadAll(body)
+	x, err := readRaw(c.Request)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -54,12 +63,14 @@ func GreetingGRPC(c *gin.Context) {
 	}
 	log.Printf("req:%+v", req)
 
-	// grpc connection
+	// gRPC connection
 	conn, err := grpc.Dial(common.Conf.Service.TCPServerAddr, grpc.WithInsecure())
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer conn.Close()
+	defer func() {
+		_ = conn.Close()
+	}()
 	client := hello.NewHelloClient(conn)
 
 	// call rpc
@@ -70,8 +81,8 @@ func GreetingGRPC(c *gin.Context) {
 	}
 	log.Printf("rsp:%v", rsp)
 
-	marshaler := &jsonpb.Marshaler{}
-	data, err := marshaler.MarshalToString(rsp)
+	mar := &jsonpb.Marshaler{}
+	data, err := mar.MarshalToString(rsp)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
