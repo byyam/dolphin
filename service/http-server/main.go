@@ -39,6 +39,7 @@ func runService() {
 
 func readRaw(req *http.Request) (body []byte, err error) {
 	body, err = ioutil.ReadAll(req.Body)
+	_ = req.Body.Close()
 	if err != nil {
 		return
 	}
