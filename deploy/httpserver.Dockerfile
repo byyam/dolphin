@@ -5,4 +5,4 @@ ADD . /app/
 WORKDIR /app
 RUN make os=linux http-server
 EXPOSE 12000
-ENTRYPOINT "/app/http-server -recipe /app/conf/conf.toml"
+ENTRYPOINT "/app/bin/http-server -recipe /app/conf/conf.toml"

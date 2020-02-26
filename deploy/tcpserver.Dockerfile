@@ -5,4 +5,4 @@ ADD . /app/
 WORKDIR /app
 RUN make os=linux tcp-server
 EXPOSE 7800
-ENTRYPOINT "/app/tcp-server -recipe /app/conf/conf.toml"
+ENTRYPOINT "/app/bin/tcp-server -recipe /app/conf/conf.toml"
