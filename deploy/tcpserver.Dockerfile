@@ -1,8 +1,16 @@
 FROM golang:latest AS builder
+RUN go version
 MAINTAINER Yam <yanzhang.scut@gmail.com>
-RUN mkdir /app
-ADD . /app/
-WORKDIR /app
+
+COPY . /go/src/github.com/byyam/dolphin/
+WORKDIR /go/src/github.com/byyam/dolphin/
 RUN make os=linux tcp-server
+
+FROM scratch
+WORKDIR /root/
+COPY --from=builder /go/src/github.com/byyam/dolphin/bin/tcp-server .
+COPY --from=builder /go/src/github.com/byyam/dolphin/conf ./conf
+
+
 EXPOSE 7800
-ENTRYPOINT "/app/bin/tcp-server -recipe /app/conf/conf.toml"
+ENTRYPOINT ["./tcp-server"]
